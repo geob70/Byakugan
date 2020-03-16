@@ -1,0 +1,59 @@
+{
+  "name": "engine",
+  "version": "0.1.0",
+  "main": "public/electron.js",
+  "dependencies": {
+    "@material-ui/core": "^4.9.5",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.45",
+    "@react-pdf/renderer": "^1.6.8",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "axios": "^0.19.2",
+    "body-parser": "^1.19.0",
+    "concurrently": "^5.1.0",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.1",
+    "electron-is-dev": "^1.1.0",
+    "electron-nightly": "^10.0.0-nightly.20200304",
+    "express": "^4.17.1",
+    "gridfs-stream": "^1.1.1",
+    "knex": "^0.20.11",
+    "method-override": "^3.0.0",
+    "mongodb": "^3.5.4",
+    "mongoose": "^5.9.3",
+    "multer": "^1.4.2",
+    "multer-gridfs-storage": "^4.0.2",
+    "pg": "^7.18.2",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-router-dom": "^5.1.2",
+    "react-scripts": "3.4.0",
+    "wait-on": "^4.0.1"
+  },
+  "scripts": {
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test",
+    "react-eject": "react-scripts eject",
+    "electron-build": "electron-builder",
+    "build": "npm run react-build && npm run electron-build",
+    "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

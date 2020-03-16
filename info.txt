@@ -1,0 +1,8 @@
+use trie data structure
+convert document format to string
+pre-process steps :
+    - Tokenizer, that turns document into sequence of word token (cut character sequence into word tokens => wait-on to wait, on)
+    - Normalization, map text to query (=> USA to match U.S.A)
+    - Stemming, handling words like (authorization to autorize, jumping to jump, troubling to trouble)
+    - Ignore stop words and words like "the, do, (article words per se)
+    - to lowercase every word
