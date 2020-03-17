@@ -1,17 +1,20 @@
 import React from "react";
-import { preProcessFile, byakugan } from "./core/tokenizer";
+import { Tokenize, byakugan } from "./core/tokenizer";
 import Upload from "./windows/upload";
 import AlertInfo from "./modal/alert";
 import Searcher from "./windows/query";
 import { readFile } from "./others/readFile";
-import { Divider, Typography } from "@material-ui/core";
-import Drawer from "@material-ui/core/Drawer";
-import Hidden from "@material-ui/core/Hidden";
+import {
+  Divider,
+  Typography,
+  Drawer,
+  Hidden,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from "@material-ui/core";
 import { CloudUpload, Search, Menu, LensTwoTone } from "@material-ui/icons";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 
 const drawerWidth = 240;
@@ -109,11 +112,12 @@ function BasePage(props) {
 
   const upload = () => {
     if (file !== null) {
-      let root = preProcessFile(file.path, file.name, trie);
+      let root = Tokenize(file.path, file.name, trie);
       setTrie(root);
       let docs = files;
       docs[file.name] = readFile(file.path);
       setFiles(docs);
+      setFile(null);
       return openModal("uploaded", "success");
     } else {
       return openModal("Select a file to upload", "error");

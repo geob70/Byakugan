@@ -128,5 +128,5 @@ export function isStopWord(word) {
     "should",
     "now"
   ];
-  return stopwords.includes(word);
+  return stopwords.includes(word.toLowerCase());
 }

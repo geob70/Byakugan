@@ -1,5 +1,6 @@
 import { Trie } from "./Trie";
 import { isStopWord } from "./stopword";
+import { stemmer } from "./porterStemmer";
 
 const fs = window.require("fs");
 
@@ -22,8 +23,8 @@ export function byakugan(query, trie) {
   return "no file to search\nUpload a file to search";
 }
 
-export function preProcessFile(path, filename, trie) {
-  let doc = "";
+export function Tokenize(path, filename, trie) {
+  let doc;
   doc = fs.readFileSync(path);
   doc = convertToArray(doc.toString());
   doc = removeNewline(doc);
@@ -39,8 +40,19 @@ function convertToArray(buffer) {
 function removeNewline(doc) {
   let array = [];
   for (let word of doc) {
-    array.push(word.replace(/(\r\n|\n|\r)/gm, ""));
+    word.replace(/(\r\n|\n|\r)/gm, "");
+    if (/\r|\n/.exec(word)) {
+      let temp = word.split(/(\r\n|\n|\r)/gm);
+      for (let i of temp) {
+        if (!/(\r\n|\n|\r)/.exec(i)) {
+          array.push(i);
+        }
+      }
+    } else {
+      array.push(word);
+    }
   }
+  console.log(array);
   return array;
 }
 
@@ -50,7 +62,8 @@ function removeStopWord(doc) {
     if (isStopWord(word)) {
       list.push("");
     } else {
-      list.push(word);
+      // Stemming happening here
+      list.push(stemmer(word));
     }
   }
   return list;
