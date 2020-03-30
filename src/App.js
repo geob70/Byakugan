@@ -1,9 +1,11 @@
 import React from "react";
+import "./App.css";
 import { Tokenize, byakugan } from "./core/tokenizer";
+import WordTable from "./windows/table";
+import useStyles from "./style";
 import Upload from "./windows/upload";
 import AlertInfo from "./modal/alert";
 import Searcher from "./windows/query";
-import { readFile } from "./others/readFile";
 import {
   Divider,
   Typography,
@@ -12,64 +14,43 @@ import {
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Chip,
+  Avatar,
+  CircularProgress,
+  Button
 } from "@material-ui/core";
-import { CloudUpload, Search, Menu, LensTwoTone } from "@material-ui/icons";
-import { makeStyles, useTheme } from "@material-ui/core/styles";
-
-const drawerWidth = 240;
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: "flex"
-  },
-  drawer: {
-    [theme.breakpoints.up("sm")]: {
-      width: drawerWidth,
-      flexShrink: 0
-    }
-  },
-  appBar: {
-    [theme.breakpoints.up("sm")]: {
-      width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: drawerWidth
-    }
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up("sm")]: {
-      display: "none"
-    }
-  },
-  toolbar: theme.mixins.toolbar,
-  drawerPaper: {
-    width: drawerWidth
-  },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(3)
-  }
-}));
+import { CloudUpload, Menu, LensTwoTone } from "@material-ui/icons";
+import { useTheme } from "@material-ui/core/styles";
 
 function BasePage(props) {
   const [file, setFile] = React.useState(null);
   const [trie, setTrie] = React.useState(null);
   const [files, setFiles] = React.useState({});
-  const [tabIndex, setIndex] = React.useState(1);
+  const [occurence, setOccurence] = React.useState(0);
+  const [time, setTime] = React.useState(0);
+  const [data, setData] = React.useState(<div></div>);
+  const [query, setQuery] = React.useState(null);
   const [message, setInfo] = React.useState("");
   const [state, setState] = React.useState("");
   const [alert, showAlert] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
+  const timer = React.useRef();
   const { container } = props;
   const classes = useStyles();
   const theme = useTheme();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    setData(data);
+    return () => {
+      clearTimeout(timer.current);
+    };
+  }, [data]);
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
-  };
-
-  const change = index => {
-    setIndex(index + 1);
   };
 
   const openModal = (message, state) => {
@@ -82,6 +63,71 @@ function BasePage(props) {
     showAlert(false);
   };
 
+  const handleChange = event => {
+    setFile(event.target.files[0]);
+  };
+
+  const search = event => {
+    setData(<div></div>);
+    setSuccess(false);
+    let start = performance.now();
+    let res = byakugan(event.target.value, trie);
+    let end = performance.now();
+    setTime(end - start);
+    if (typeof res === "string") {
+      openModal(res, "warning");
+    } else if (res !== null) {
+      setQuery(res);
+      setOccurence(res.frequency);
+    } else {
+      setOccurence(0);
+      setTime(0);
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (!loading) {
+      setLoading(true);
+      timer.current = setTimeout(() => {
+        const table = displaySearch(query);
+        setLoading(false);
+        setSuccess(true);
+        setData(table);
+      }, 2000);
+    }
+  };
+
+  const displaySearch = query => {
+    setOccurence(query.frequency);
+    let temp = [];
+    Object.keys(query.index).forEach(key => {
+      query.index[key].map(item =>
+        temp.push({
+          word: files[key][item],
+          filename: key,
+          index: item
+        })
+      );
+    });
+    const table = <WordTable data={temp} />;
+    return table;
+  };
+
+  const upload = () => {
+    if (file !== null) {
+      let objData = Tokenize(file.path, file.name, trie);
+      let root = objData.obj;
+      let content = files;
+      content[file.name] = objData.doc;
+      setTrie(root);
+      setFiles(content);
+      setFile(null);
+      return openModal("uploaded", "success");
+    } else {
+      return openModal("Select a file to upload", "error");
+    }
+  };
+
   const drawer = (
     <div>
       <Typography variant="subtitle2">
@@ -90,39 +136,18 @@ function BasePage(props) {
       <div className={classes.toolbar} />
       <Divider />
       <List>
-        {["Upload File", "Search"].map((text, index) => (
-          <ListItem onClick={() => change(index)} button key={text}>
-            <ListItemIcon>
-              {index % 2 === 0 ? <CloudUpload /> : <Search />}
-            </ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
+        <ListItem>
+          <ListItemIcon>
+            <CloudUpload />
+          </ListItemIcon>
+          <ListItemText primary="Upload File" />
+        </ListItem>
+        <ListItem>
+          <Upload file={handleChange} uploader={upload} />
+        </ListItem>
       </List>
     </div>
   );
-
-  const handleChange = event => {
-    setFile(event.target.files[0]);
-  };
-
-  const search = event => {
-    console.log(byakugan(event.target.value, trie));
-  };
-
-  const upload = () => {
-    if (file !== null) {
-      let root = Tokenize(file.path, file.name, trie);
-      setTrie(root);
-      let docs = files;
-      docs[file.name] = readFile(file.path);
-      setFiles(docs);
-      setFile(null);
-      return openModal("uploaded", "success");
-    } else {
-      return openModal("Select a file to upload", "error");
-    }
-  };
 
   return (
     <div className={classes.root}>
@@ -133,9 +158,6 @@ function BasePage(props) {
         onClick={handleDrawerToggle}
         className={classes.menuButton}
       />
-      {/* <Typography variant="h6" noWrap>
-        Responsive drawer
-      </Typography> */}
       <nav className={classes.drawer} aria-label="mailbox folders">
         {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
         <Hidden smUp implementation="css">
@@ -176,8 +198,39 @@ function BasePage(props) {
           message={message}
         />
         <div>
-          {tabIndex === 1 && <Upload file={handleChange} uploader={upload} />}
-          {tabIndex === 2 && <Searcher query={search} />}
+          <div className="display">
+            <Searcher value="" query={search} />
+            <div className="result">
+              <span>Found {occurence} words matching </span>
+              <Chip
+                variant="outlined"
+                size="small"
+                avatar={<Avatar>!</Avatar>}
+                label={"Fetched result in " + time + " milliseconds"}
+              />
+            </div>
+            {!success && (
+              <div className={classes.wrapper}>
+                <p>Loading table might take a while to render</p>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  className={classes.buttonSuccess}
+                  disabled={loading}
+                  onClick={handleButtonClick}
+                >
+                  Load table
+                  {loading && (
+                    <CircularProgress
+                      size={24}
+                      className={classes.buttonProgress}
+                    />
+                  )}
+                </Button>
+              </div>
+            )}
+            {success && data}
+          </div>
         </div>
       </main>
     </div>
