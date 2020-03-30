@@ -5,16 +5,17 @@ import { stemmer } from "./porterStemmer";
 const fs = window.require("fs");
 
 export function byakugan(query, trie) {
+  console.log(trie);
   if (trie !== null) {
     let curr = trie.root[query.charAt(0)];
     if (curr === null || curr === undefined) {
-      return "not found";
+      return null;
     } else {
       for (let i = 1; i < query.length; i++) {
         if (query.charAt(i) in curr.getChildren()) {
           curr = curr.getChild(query.charAt(i));
         } else {
-          return "not found";
+          return null;
         }
       }
     }
@@ -25,11 +26,14 @@ export function byakugan(query, trie) {
 
 export function Tokenize(path, filename, trie) {
   let doc;
-  doc = fs.readFileSync(path);
-  doc = convertToArray(doc.toString());
-  doc = removeNewline(doc);
-  doc = removeStopWord(doc);
-  return createTrie(doc, trie, filename);
+  let obj;
+  obj = fs.readFileSync(path);
+  obj = convertToArray(obj.toString());
+  obj = removeNewline(obj);
+  doc = obj;
+  obj = removeStopWord(obj);
+  obj = createTrie(obj, trie, filename);
+  return { obj, doc };
 }
 
 function convertToArray(buffer) {
@@ -52,7 +56,6 @@ function removeNewline(doc) {
       array.push(word);
     }
   }
-  console.log(array);
   return array;
 }
 
