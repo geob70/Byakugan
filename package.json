@@ -19,7 +19,7 @@
     "electron-nightly": "^10.0.0-nightly.20200304",
     "express": "^4.17.1",
     "gridfs-stream": "^1.1.1",
-    "knex": "^0.20.11",
+    "knex": "^2.4.0",
     "method-override": "^3.0.0",
     "mongodb": "^3.5.4",
     "mongoose": "^5.9.3",
